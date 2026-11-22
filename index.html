@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en-NG"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Classroom NG | School workspace</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#172c27;background:#f3f6f3;line-height:1.5;--green:#125941;--dark:#123b30;--line:#dce6df;--muted:#526861}*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer}h1,h2,h3,p{margin:0}h1{font-size:clamp(2rem,4vw,3.2rem);line-height:1.08;letter-spacing:-.045em}h2{font-size:1.55rem;letter-spacing:-.025em}h3{font-size:1.1rem}.muted,small{color:var(--muted)}.brand{display:flex;gap:12px;align-items:center;font-weight:800;font-size:1.2rem}.logo{display:grid;place-items:center;background:#cfeb75;border-radius:12px;color:#183829;width:38px;height:38px}.signin{display:grid;grid-template-columns:1fr 1fr;min-height:100dvh}.intro{display:flex;flex-direction:column;justify-content:space-between;gap:4rem;background:var(--dark);color:#fff;padding:clamp(2rem,6vw,6rem);background-image:radial-gradient(ellipse at bottom right,#296451,transparent 65%)}.intro h1{max-width:530px;font-size:clamp(2.5rem,5vw,5.1rem)}.intro p{color:#d7e9e0;max-width:430px;margin-top:1rem}.login{align-self:center;justify-self:center;width:min(460px,100%);padding:2rem}.login form{margin-top:1.5rem}.layout{display:grid;grid-template-columns:242px minmax(0,1fr);min-height:100dvh}.sidebar{background:var(--dark);color:white;padding:24px 16px;display:flex;flex-direction:column;gap:1.8rem}.sidebar nav{display:grid;gap:6px}.sidebar button{color:#e1eee7;border:0;text-align:left;background:transparent;padding:10px 13px;border-radius:9px}.sidebar button:hover,.sidebar button[aria-current=true]{background:#27614f;color:white}.sidebar .account{margin-top:auto;display:grid;gap:5px}.sidebar small{color:#c8dbd2}.main{padding:clamp(17px,4vw,48px);width:100%;max-width:1420px;margin:auto;margin-top:0}.hero{padding:clamp(22px,5vw,48px);background:#e3eee6;border:1px solid #d5e6da;border-radius:20px;margin-bottom:22px}.hero p{margin-top:9px}.panel,.card,.metric{background:white;border:1px solid var(--line);border-radius:15px;padding:20px}.panel{max-width:960px}.card,.metric{display:grid;gap:9px;align-content:start}.metric strong{font-size:2.25rem;color:var(--green);line-height:1.2}.grid,.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:14px;margin:12px 0 24px}.items{display:grid;gap:12px}.toolbar,.actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.toolbar{justify-content:space-between;margin-bottom:12px}.actions{margin-top:10px}.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--green);border:1px solid var(--green);color:white;border-radius:9px;padding:9px 15px;font-weight:650}.secondary{background:white;color:var(--green);border-color:#bfd4c8}.badge{display:inline-block;border-radius:20px;padding:3px 10px;background:#e7f2eb;color:#275844;font-size:.87rem;width:fit-content;font-weight:650}.draft{background:#fff0d0;color:#754c09}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:12px}label{display:grid;gap:5px;font-weight:650;font-size:.94rem}input,select,textarea{width:100%;border:1px solid #b8ccc0;border-radius:8px;padding:9px 10px;background:#fff;color:#172c27}textarea{resize:vertical;min-height:95px}form{display:grid;gap:14px}input[type=checkbox],input[type=radio]{width:auto}label.inline{display:flex;align-items:center;gap:8px}.read{white-space:pre-wrap;overflow-wrap:anywhere}.meta{font-size:.9rem;color:var(--muted);overflow-wrap:anywhere}.notice{margin:0 0 14px;padding:11px 14px;border-radius:9px;background:#e3f1e7}.error{background:#ffe4de;color:#812b1c}.preview{display:grid;gap:12px;margin:14px 0}.subheading{margin:18px 0 10px}.question{margin:0;min-width:0;border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:9px}.question legend{font-weight:700;padding:0 5px}.empty{padding:23px;color:var(--muted);border:1px dashed #b9cbbf;border-radius:12px}.login .notice:empty,#status:empty{display:none}@media(max-width:720px){.signin,.layout{grid-template-columns:1fr}.intro{gap:1.5rem}.intro .scope{display:none}.sidebar{gap:.7rem;padding:14px}.sidebar nav,.sidebar .account{display:flex;flex-wrap:wrap;align-items:center}.main{padding:14px}}@media print{.sidebar,.no-print,.notice{display:none!important}.layout{display:block}.main{padding:0}.panel,.question{border:none}.question{break-inside:avoid}}
+</style>
+<div id="app"></div>
+<script>
+const app=document.querySelector('#app');
+const groups=['JSS1','JSS2','JSS3','SS1','SS2','SS3'];
+const terms=['First Term','Second Term','Third Term'];
+const logo='<span class="logo" aria-hidden="true">▤</span><span>Classroom NG</span>';
+let state, page='overview', detail=null, draft=null, filter='', notice='';
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const option=(value,label=value,selected=false)=>`<option value="${esc(value)}"${selected?' selected':''}>${esc(label)}</option>`;
+const options=(values,selected)=>values.map(v=>option(v,v,v===selected)).join('');
+const button=(caption,action,id='',secondary=false)=>`<button type="button" class="btn ${secondary?'secondary':''}" data-action="${action}" data-id="${id}">${caption}</button>`;
+const textField=(label,name,value='',type='text',attrs='')=>`<label>${label}<input type="${type}" name="${name}" value="${esc(value)}" ${attrs} required></label>`;
+const textarea=(label,name,value='',attrs='')=>`<label>${label}<textarea name="${name}" ${attrs}>${esc(value)}</textarea></label>`;
+const metadata=item=>[item.class,item.subject,item.term].map(esc).join(' · ');
+const total=exam=>exam.questions.reduce((sum,q)=>sum+q.marks,0);
+const isStudent=()=>state.user.role==='student';
+const safeClass=()=>isStudent()?state.user.class:filter;
+const empty=(message)=>`<div class="empty">${message}</div>`;
+async function api(path,data){
+ const response=await fetch('/api/'+path,data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+ const result=await response.json();
+ if(!response.ok){const err=new Error(result.error);err.status=response.status;throw err}
+ return result;
+}
+function showError(error){const box=document.querySelector('#status');box.textContent=error.message;box.className='notice error';box.scrollIntoView({block:'nearest'})}
+function setPage(next){page=next;detail=null;draft=null;notice='';render()}
+function login(){
+ app.innerHTML=`<div class="signin"><section class="intro"><div class="brand">${logo}</div><div><h1>Lesson notes and exams in one place.</h1><p>Teaching and learning for Nigerian secondary schools.</p></div><p class="scope">Junior and Senior Secondary · JSS1–SS3</p></section><main class="login"><h2>Sign in</h2><p class="muted">Use the username and password issued by your school.</p><form data-form="login"><div id="status" role="alert" class="notice"></div>${textField('Username','username','','text','autocomplete="username"')}${textField('Password','password','','password','autocomplete="current-password"')}<button class="btn">Sign in</button></form></main></div>`;
+}
+function render(){
+ const tabs=isStudent()?{overview:'Overview',notes:'Lesson notes',exams:'Exams',results:'My results'}:{overview:'Overview',notes:'Lesson notes',exams:'Exams',results:'Submissions',accounts:'School accounts'};
+ app.innerHTML=`<div class="layout"><aside class="sidebar"><div class="brand">${logo}</div><nav aria-label="Workspace">${Object.entries(tabs).map(([tab,label])=>`<button aria-current="${page===tab}" data-action="nav" data-id="${tab}">${label}</button>`).join('')}</nav><div class="account"><strong>${esc(state.user.name)}</strong><small>${esc(state.user.class|| (state.user.role==='admin'?'Administrator':'Teacher'))}</small><button data-action="settings">Change password</button><button data-action="logout">Sign out</button></div></aside><main class="main"><div id="status" role="status" class="notice">${esc(notice)}</div>${content()}</main></div>`;
+}
+const heading=(title,description='')=>`<header class="hero"><h1>${title}</h1>${description?`<p>${description}</p>`:''}</header>`;
+const status=(published)=>`<span class="badge ${published?'':'draft'}">${published?'Published':'Draft'}</span>`;
+const classFilter=()=>isStudent()?'':`<label>Filter by class<select id="class-filter">${option('','All classes',!filter)}${options(groups,filter)}</select></label>`;
+const matches=item=>!safeClass()||item.class===safeClass();
+function noteCard(n){return `<article class="card">${isStudent()?'':status(n.published)}<h3>${esc(n.topic)}</h3><p class="meta">${metadata(n)}</p><div class="actions">${button('Read note','read',n.id,true)}${isStudent()?'':button('Edit note','edit-note',n.id,true)}</div></article>`}
+function examCard(e){
+ const attempt=state.attempts.find(a=>a.exam===e.id);
+ return `<article class="card">${isStudent()?'<span class="badge">'+(attempt?'Submitted':'Available')+'</span>':status(e.published)}<h3>${esc(e.title)}</h3><p class="meta">${metadata(e)} · ${e.questions.length} questions · ${total(e)} marks</p><div class="actions">${isStudent()?(attempt?button('View results','nav','results',true):button('Open exam','take',e.id)):`${e.published?'':button('Edit draft','edit-exam',e.id)}${button('Print paper','print-paper',e.id,true)}${button('Marking guide','print-guide',e.id,true)}`}</div></article>`;
+}
+function content(){
+ if(detail) return detailView();
+ if(page==='overview'){
+  const metrics=[['Lesson notes',state.notes.length,'notes'],['Published exams',state.exams.filter(e=>e.published).length,'exams'],[isStudent()?'Exams submitted':'Submissions',state.attempts.length,'results']];
+  return heading('Your school workspace',isStudent()?esc(state.user.class)+' · Lesson notes, exams and results':'Manage lesson notes and assessments for JSS1 to SS3.')+
+  `<section class="metrics">${metrics.map(([k,v,p])=>`<article class="metric"><strong>${v}</strong><span>${k}</span><div>${button('View '+k.toLowerCase(),'nav',p,true)}</div></article>`).join('')}</section><div class="toolbar"><h2>Recent lesson notes</h2>${isStudent()?'':button('New lesson note','edit-note')}</div>`+(state.notes.length?`<div class="grid">${state.notes.slice(0,3).map(noteCard).join('')}</div>`:empty('No lesson notes yet.'));
+ }
+ if(page==='notes'||page==='exams'){
+  const notes=page==='notes',items=state[page].filter(matches), title=notes?'Lesson notes':'Exams';
+  return heading(title,notes?'Browse notes by class, subject and term.':'Prepare assessments or view available exams.')+
+  `<div class="toolbar">${classFilter()}${isStudent()?'':button(notes?'New lesson note':'Create exam',notes?'edit-note':'edit-exam')}</div>`+(items.length?`<div class="grid">${items.map(notes?noteCard:examCard).join('')}</div>`:empty(`No ${title.toLowerCase()} available.`));
+ }
+ if(page==='results')return heading(isStudent()?'My results':'Exam submissions')+(state.attempts.length?`<div class="items">${state.attempts.map(a=>`<article class="card"><h3>${esc(a.title)}</h3><p>${isStudent()?'':esc(a.name)+' · '}${a.released?`${a.score} / ${a.total} marks`:'Awaiting marking and release'}</p><div>${isStudent()?'':button(a.released?'Review marks':'Mark and release','grade',a.id,true)}</div></article>`).join('')}</div>`:empty('No exams have been submitted yet.'));
+ if(page==='accounts')return heading('School accounts','Issue sign-in details to teachers and students.')+
+ `<div class="toolbar">${button('Create account','new-account')}</div><div class="grid">${state.accounts.map(u=>`<article class="card"><h3>${esc(u.name)}</h3><p class="meta">${esc(u.username)} · ${esc(u.role)}${u.class?' · '+esc(u.class):''}</p></article>`).join('')}</div>`;
+}
+function panel(title,html){return `<div class="actions no-print">${button('Back','back','',true)}</div><h1 class="subheading">${title}</h1><section class="panel">${html}</section>`}
+function detailView(){
+ const {type,id}=detail;
+ const note=state.notes.find(item=>item.id===id);
+ const exam=state.exams.find(item=>item.id===id);
+ if(type==='read')return panel(esc(note.topic),`<p class="meta">${metadata(note)}</p><p class="read subheading">${esc(note.body)}</p>${isStudent()?'':button('Draft exam from note','from-note',id)}`);
+ if(type==='edit-note')return panel(note?'Edit lesson note':'New lesson note',`<form data-form="note">${textField('Topic','topic',note?.topic,'text','maxlength="160"')}<div class="fields">${textField('Subject','subject',note?.subject,'text','maxlength="160"')}<label>Class<select name="group">${options(groups,note?.class)}</select></label><label>Term<select name="term">${options(terms,note?.term)}</select></label></div>${textarea('Lesson note','body',note?.body,'rows="12" required maxlength="48000"')}<label class="inline"><input type="checkbox" name="published" ${note?.published?'checked':''}>Publish to students in this class</label><div><button class="btn">Save lesson note</button></div></form>`);
+ if(type==='settings')return panel('Change password',`<form data-form="password">${textField('Current password','current','','password','autocomplete="current-password"')}${textField('New password','password','','password','minlength="12" autocomplete="new-password"')}<div><button class="btn">Save password</button></div></form>`);
+ if(type==='new-account')return panel('Create school account',`<form data-form="account">${textField('Full name','name')}${textField('Username','username','','text','autocomplete="off" minlength="3" maxlength="50"')}${textField('Initial password','password','','password','minlength="12" autocomplete="new-password"')}<div class="fields"><label>Role<select name="role">${option('student','Student')}${state.user.role==='admin'?option('teacher','Teacher'):''}</select></label><label id="account-class">Student class<select name="group">${options(groups)}</select></label></div><div><button class="btn">Create account</button></div></form>`);
+ if(type==='edit-exam') return editor(exam);
+ if(type==='take')return panel(esc(exam.title),`<p class="meta">${metadata(exam)} · ${total(exam)} marks</p><form data-form="submit" class="subheading">${exam.questions.map((q,i)=>`<fieldset class="question"><legend>Question ${i+1} · ${q.marks} marks</legend><p>${esc(q.text)}</p>${q.kind==='objective'?q.options.map((o,j)=>`<label class="inline"><input type="radio" name="q${i}" value="${j}">${esc(o)}</label>`).join(''):textarea('Your answer','q'+i,'','maxlength="12000"')}</fieldset>`).join('')}<div><button class="btn">Submit exam</button></div></form>`);
+ if(type==='grade'){
+  const a=state.attempts.find(x=>x.id===id), paper=state.exams.find(e=>e.id===a.exam);
+  return panel(esc(a.title),`<p>${esc(a.name)}</p><form data-form="grade" class="subheading">${paper.questions.map((q,i)=>`<fieldset class="question"><legend>Question ${i+1} · ${q.marks} marks</legend><p>${esc(q.text)}</p><p class="read">Student answer: ${esc((q.kind==='objective'?q.options[a.answers[i]]:a.answers[i])||'Unanswered')}</p><p class="read">Marking guide: ${esc(q.guide)}</p>${q.kind==='objective'?`<p>Auto-marked: ${a.marks[i]} / ${q.marks}</p>`:textField('Marks awarded','q'+i,a.marks[i],'number',`min="0" max="${q.marks}" step="1"`)}</fieldset>`).join('')}<div><button class="btn">Save marks and release result</button></div></form>`);
+ }
+ if(type==='print-paper'||type==='print-guide'){
+  const guide=type==='print-guide';
+  return panel(esc(exam.title),`<p>${metadata(exam)} · ${guide?'Marking guide':'Exam paper'} · ${total(exam)} marks</p><div class="actions no-print">${button('Print','print')}</div><div class="preview">${exam.questions.map((q,i)=>`<article class="question"><strong>${i+1}. ${esc(q.text)} (${q.marks} marks)</strong>${q.kind==='objective'?q.options.map((o,j)=>`<div>${String.fromCharCode(65+j)}. ${esc(o)}</div>`).join(''):''}${guide?`<p class="read">${q.kind==='objective'?'Correct option: '+String.fromCharCode(65+q.answer)+'. ':''}${esc(q.guide)}</p>`:''}</article>`).join('')}</div>`);
+ }
+}
+function editor(exam){
+ if(!state.notes.length&&!exam) return panel('Create exam',`<p>Save a lesson note before creating an exam.</p><div class="actions">${button('New lesson note','edit-note')}</div>`);
+ return panel(exam?'Edit exam draft':'Create exam',`<form data-form="exam">${textField('Exam title','title',draft.title,'text','maxlength="160"')}<label>Source lesson note<select name="note" ${exam?'disabled':''}>${state.notes.map(n=>option(n.id,`${n.topic} · ${n.class} · ${n.subject} · ${n.term}`,n.id===draft.note)).join('')}</select></label><div class="fields"><label>Objective questions to draft<input type="number" name="objective" min="0" max="30" value="${draft.objective}"></label><label>Theory questions to draft<input type="number" name="theory" min="0" max="30" value="${draft.theory}"></label></div><div class="actions">${button('Draft questions from note','generate')}${button('Add objective question','add-objective','',true)}${button('Add theory question','add-theory','',true)}</div><p class="muted">Review wording, answer options and marking guides before publishing.</p><div class="preview">${draft.questions.map((q,i)=>`<fieldset class="question"><legend>${i+1}. ${q.kind==='objective'?'Objective':'Theory'}</legend>${textarea('Question','text'+i,q.text,'required maxlength="2000"')}${q.kind==='objective'?`${textarea('Options, one per line','options'+i,q.options.join('\n'),'required')}<label>Correct option number<input name="answer${i}" type="number" min="1" max="8" value="${q.answer+1}" required></label>`:''}${textField('Marks','marks'+i,q.marks,'number','min="1" max="100"')}${textarea('Marking guide','guide'+i,q.guide,'required maxlength="4000"')}<div>${button('Remove question','remove-question',i,true)}</div></fieldset>`).join('')}</div><div class="actions"><button class="btn secondary" name="intent" value="draft">Save draft</button><button class="btn" name="intent" value="publish">Publish exam</button></div></form>`);
+}
+function captureDraft(){
+ const f=new FormData(document.querySelector('[data-form="exam"]'));
+ draft.title=f.get('title');draft.note=Number(f.get('note'))||draft.note;
+ draft.objective=Number(f.get('objective'));draft.theory=Number(f.get('theory'));
+ draft.questions=draft.questions.map((q,i)=>({...q,text:f.get('text'+i),guide:f.get('guide'+i),marks:Number(f.get('marks'+i)),options:q.kind==='objective'?f.get('options'+i).split('\n').map(s=>s.trim()).filter(Boolean):[],answer:q.kind==='objective'?Number(f.get('answer'+i))-1:null}));
+}
+async function refresh(message,next=page){state=await api('state');setPage(next);notice=message;render()}
+app.addEventListener('change',event=>{
+ if(event.target.id==='class-filter'){filter=event.target.value;render()}
+ if(event.target.name==='role'&&detail?.type==='new-account')document.querySelector('#account-class').hidden=event.target.value==='teacher';
+});
+app.addEventListener('click',async event=>{
+ const el=event.target.closest('[data-action]');if(!el)return;
+ const {action}=el.dataset,id=Number(el.dataset.id)||null;
+ try{
+  if(action==='nav')return setPage(el.dataset.id);
+  if(action==='back')return setPage(page);
+  if(action==='logout'){await api('logout',{});state=null;page='overview';detail=null;filter='';login();return}
+  if(action==='print')return window.print();
+  if(['generate','add-objective','add-theory','remove-question'].includes(action)){
+   captureDraft();
+   if(action==='generate'){
+    el.disabled=true;
+    try{const generated=await api('generate',{note:draft.note,objective:draft.objective,theory:draft.theory});draft.questions.push(...generated.questions)}
+    finally{el.disabled=false}
+   } else if(action==='remove-question'){draft.questions.splice(Number(el.dataset.id),1)}
+   else {const objective=action==='add-objective';draft.questions.push({kind:objective?'objective':'theory',text:'',guide:'',options:objective?['','']:[],answer:objective?0:null,marks:objective?1:5})}
+   return render();
+  }
+  notice='';
+  if(action==='edit-exam'||action==='from-note'){
+   const exam=action==='edit-exam'?state.exams.find(e=>e.id===id):null;
+   const n=action==='from-note'?id:exam?.note||state.notes[0]?.id;
+   draft={title:exam?.title||'',note:n,objective:1,theory:1,questions:exam?structuredClone(exam.questions):[]};
+   detail={type:'edit-exam',id:exam?.id};page='exams';
+  }else{detail={type:action,id}}
+  render();
+ }catch(error){showError(error)}
+});
+app.addEventListener('submit',async event=>{
+ event.preventDefault();
+ const f=event.target, data=Object.fromEntries(new FormData(f)), action=f.dataset.form;
+ if(event.submitter)event.submitter.disabled=true;
+ try{
+  if(action==='login'){await api('login',data);await refresh('','overview')}
+  if(action==='note'){await api('note',{...data,id:detail.id,published:!!data.published});await refresh('Lesson note saved.','notes')}
+  if(action==='account'){await api('account',data);await refresh('School account created.','accounts')}
+  if(action==='password'){await api('password',data);await refresh('Password updated.')}
+  if(action==='exam'){
+   captureDraft();
+   const published=event.submitter?.value==='publish';
+   await api('exam',{id:detail.id,title:draft.title,note:draft.note,questions:draft.questions,published});
+   await refresh(published?'Exam published.':'Exam draft saved.','exams');
+  }
+  if(action==='submit'){
+   const exam=state.exams.find(e=>e.id===detail.id);
+   const answers=exam.questions.map((q,i)=>q.kind==='objective'?(data['q'+i]===undefined?null:Number(data['q'+i])):data['q'+i]||'');
+   await api('submit',{exam:exam.id,answers});await refresh('Exam submitted.','results');
+  }
+  if(action==='grade'){
+   const attempt=state.attempts.find(a=>a.id===detail.id),exam=state.exams.find(e=>e.id===attempt.exam);
+   await api('grade',{attempt:attempt.id,marks:exam.questions.map((q,i)=>q.kind==='theory'?Number(data['q'+i]):null)});
+   await refresh('Result released to the student.','results');
+  }
+ }catch(error){showError(error)}finally{if(event.submitter)event.submitter.disabled=false}
+});
+api('state').then(value=>{state=value;render()}).catch(error=>{login();if(error.status!==401)showError(error)});
+</script>
+</html>
