@@ -5,7 +5,7 @@ const random=()=>hex(crypto.getRandomValues(new Uint8Array(32)));
 const hash=async value=>hex(await crypto.subtle.digest('SHA-256',encoder.encode(value)));
 async function passwordHash(password,salt=random()){
   const key=await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveBits']);
-  const digest=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:Uint8Array.from(salt.match(/../g),v=>parseInt(v,16)),iterations:600000},key,256);
+  const digest=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:Uint8Array.from(salt.match(/../g),v=>parseInt(v,16)),iterations:100000},key,256);
   return salt+':'+hex(digest);
 }
 function equal(left,right){
